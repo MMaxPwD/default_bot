@@ -4,6 +4,7 @@ from aiogram.types import Message, InlineKeyboardButton, CallbackQuery
 from aiogram.utils.keyboard import InlineKeyboardBuilder
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from core.logging.logging import logger
 from services.payments import PaymentService
 
 payment_router = Router()
@@ -36,7 +37,7 @@ async def check_handler(
 ) -> None:
     result = await payment_service.get_payment(callback.data.split("_")[-1])
 
-    print(callback.data.split("_")[-1])
+    logger.info(callback.data.split("_")[-1])
     if not result:
         await callback.message.answer("Оплата еще не прошла или возникла ошибка")
     else:

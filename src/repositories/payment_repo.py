@@ -1,5 +1,5 @@
 from typing import Any
-
+from core.logging.logging import logger
 from sqlalchemy import update, literal
 from sqlalchemy.exc import SQLAlchemyError
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -18,7 +18,7 @@ class PaymentRepository:
             return record
 
         except SQLAlchemyError as e:
-            print(f"Платеж не сохранен в БД {e}")
+            logger.error(f"Платеж не сохранен в БД {e}")
             raise
 
     async def update_payment(
@@ -34,5 +34,5 @@ class PaymentRepository:
             payment = await session.scalar(query)
             return payment
         except SQLAlchemyError as e:
-            print(f"Ошибка обновления платежа: {e}")
+            logger.error(f"Ошибка обновления платежа: {e}")
             raise

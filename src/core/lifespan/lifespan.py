@@ -1,18 +1,17 @@
 import asyncio
 from collections.abc import AsyncIterator
 from contextlib import asynccontextmanager
-from logging import getLogger
+
 
 from aiogram import Bot, Dispatcher
 from aiogram.fsm.storage.memory import MemoryStorage
 from fastapi import FastAPI
 
 from bot.router import router
+from core.logging.logging import logger
 from core.midllewares.dependency_middleware import DependencyMiddleware
 from core.settings import settings
 from scheduler.scheduler import scheduler
-
-logger = getLogger()
 
 
 @asynccontextmanager
