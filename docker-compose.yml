@@ -1,0 +1,58 @@
+version: '3.8'
+#В новых версиях писать не обязатиельно
+
+services:
+  db:
+    image: postgres:16-alpine
+    container_name: holiday_db_cont
+    environment:
+      # подсасываем данные из .env
+      POSTGRES_USER: ${DB_USER}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+      POSTGRES_DB: ${DB_NAME} # база создается автоматически, прописывать дополнительно ничего не нужно
+#    ports:
+#      - "7432:5432"  # Проброс порта для доступа с хоста (опционально)
+    # если от этого сервиса зависит другой сервис, то рекомендуется делать healthcneck для проверки работоспособности
+    healthcheck:
+      test:  ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 15s
+  #это чтобы не удалялись данные. Нужно отедбно прописать volume на уровне service
+  #с указанием его названия, в данном случае db_data
+    volumes:
+      - db_data:/var/lib/postgresql/data
+      - ./pg_admin_init/holidays_base.csv:/tmp/holidays_base.csv:ro
+      - ./pg_admin_init/picture.csv:/tmp/picture.csv:ro
+    networks:
+      - bot-network
+
+
+  bot:
+    image: default_bot
+    #такого образа нет поэтому его нужно построить
+    build:
+      context: .  # Путь к Dockerfile вашего бота
+    #Указываем, что запустим сервис, только после того как убедимся что сервис db запустился
+    #По умолчанию проерятся по условию запуска контейнера
+    depends_on:
+      db:
+        condition: service_healthy
+    restart: always
+    env_file:
+      - .env
+#    environment:
+#      BOT_NAME: ${BOT_NAME}
+#      BOT_TOKEN: ${BOT_TOKEN}
+#      ADMIN_CHAT_ID: ${ADMIN_CHAT_ID}
+#      DB_HOST: ${DB_HOST}
+    # внутри compose сервисы общаются друг с другом по именам, поэтому в энвах меням локалхост на имя сервиса бд (db)
+    networks:
+      - bot-network
+
+volumes:
+  db_data:
+  pgadmin_data:
+networks:
+  bot-network:
